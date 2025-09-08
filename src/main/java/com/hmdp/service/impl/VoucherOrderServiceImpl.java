@@ -10,6 +10,7 @@ import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
@@ -55,19 +56,24 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     @Resource
     private RedissonClient redissonClient;
 
+    @Resource
+    private RocketMQTemplate rocketMQTemplate;
+
     private static final DefaultRedisScript<Long> SECKILL_SCRIPT;
     static {
         SECKILL_SCRIPT = new DefaultRedisScript<>();
         SECKILL_SCRIPT.setLocation(new ClassPathResource("seckill.lua"));
         SECKILL_SCRIPT.setResultType(Long.class);
     }
-
+    /**
+     * 被rocketmq替换
     private static final ExecutorService SECKILL_ORDER_EXECUTOR = Executors.newCachedThreadPool();
 
     @PostConstruct
     private void init() {
         SECKILL_ORDER_EXECUTOR.submit(new VoucherOrderHandler());
     }
+
 
     private class VoucherOrderHandler implements Runnable {
         String queueName = "stream.orders";
@@ -134,6 +140,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             }
         }
     }
+        **/
 //    private BlockingQueue<VoucherOrder> orderTasks = new ArrayBlockingQueue<>(1024*1024);
 //    private class VoucherOrderHandler implements Runnable {
 //        @Override
@@ -149,8 +156,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 //            }
 //        }
 //    }
-
-    private void handleVoucherOrder(VoucherOrder voucherOrder) {
+    //private 改成public 了
+    public void handleVoucherOrder(VoucherOrder voucherOrder) {
         //1.获取用户
         Long userId = voucherOrder.getUserId();
         //创建锁对象
@@ -160,10 +167,11 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         if(!isLock){
             log.error("不允许重复下单");
-            return;
+            return;//有问题
         }
         try {
             //获取代理对象
+            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
             proxy.createVoucherOrder(voucherOrder);
         } finally {
             lock.unlock();
@@ -171,6 +179,11 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     }
 
     private IVoucherOrderService proxy;
+
+//    @PostConstruct
+//    private void init() {
+//        proxy = (IVoucherOrderService) AopContext.currentProxy();
+//    }
 
     @Override
     public Result seckillVoucher(Long voucherId) {
@@ -188,6 +201,12 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             //不为0，代表没有购买资格
             return Result.fail(r == 1 ? "库存不足" : "不能重复下单");
         }
+        VoucherOrder voucherOrder = new VoucherOrder();
+        voucherOrder.setId(orderId);
+        voucherOrder.setUserId(userId);
+        voucherOrder.setVoucherId(voucherId);
+
+        rocketMQTemplate.syncSend("TOPIC_SECKILL_ORDER", voucherOrder);
 
         //3.获取代理对象
         proxy = (IVoucherOrderService) AopContext.currentProxy();
@@ -262,6 +281,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @Transactional
     public void createVoucherOrder(VoucherOrder voucherOrder) {
+
         //一人一单
         Long userId = voucherOrder.getUserId();
         //查询订单
@@ -269,7 +289,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         if (count > 0) {
             log.error("用户已经下过单了");
-            return;
+            return;//有问题
         }
         //扣减库存
         boolean success = seckillVoucherService.update()
@@ -278,7 +298,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                 .update();
         if (!success) {
             log.error("库存不足!");
-            return;
+            return;//有问题
         }
         //创建订单
         save(voucherOrder);

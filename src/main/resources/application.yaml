@@ -1,6 +1,9 @@
 server:
   port: 8081
 spring:
+  aop:
+    proxy-target-class: true
+    expose-proxy: true
   application:
     name: hmdp
   datasource:
@@ -25,3 +28,8 @@ mybatis-plus:
 logging:
   level:
     com.hmdp: debug
+rocketmq:
+  name-server: 172.27.50.60:9876
+  producer:
+    group: hmdp_producer_group
+    transaction-group: TX_HMDP_SECKILL_GROUP
