@@ -156,7 +156,6 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 //            }
 //        }
 //    }
-    //private 改成public 了
     public void handleVoucherOrder(VoucherOrder voucherOrder) {
         //1.获取用户
         Long userId = voucherOrder.getUserId();
@@ -167,7 +166,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         if(!isLock){
             log.error("不允许重复下单");
-            //return;//有问题
+            //return;
             throw new RuntimeException("获取锁失败，不允许重复下单");
         }
         try {
@@ -243,42 +242,42 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     }
 
      */
-
+    /*
     @Override
-//    public Result seckillVoucher(Long voucherId) {
-//
-//        SeckillVoucher voucher = seckillVoucherService.getById(voucherId);
-//
-//        if (voucher.getBeginTime().isAfter(LocalDateTime.now())){
-//            return Result.fail("秒杀尚未开始!");
-//        }
-//
-//        if (voucher.getEndTime().isBefore(LocalDateTime.now())){
-//            return Result.fail("秒杀已经结束!");
-//        }
-//
-//        if (voucher.getStock() < 1) {
-//            return Result.fail("库存已无");
-//        }
-//        Long userId = UserHolder.getUser().getId();
-//
-//        //创建锁对象
-//        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
-//        RLock lock = redissonClient.getLock("lock:order:" + userId);
-//        //获取锁
-//        boolean isLock = lock.tryLock();
-//
-//        if(!isLock){
-//            return Result.fail("不允许重复下单");
-//        }
-//        try {
-//            //获取代理对象
-//            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
-//            return proxy.createVoucherOrder(voucherId);
-//        } finally {
-//            lock.unlock();
-//        }
-//    }
+    public Result seckillVoucher(Long voucherId) {
+
+        SeckillVoucher voucher = seckillVoucherService.getById(voucherId);
+
+        if (voucher.getBeginTime().isAfter(LocalDateTime.now())){
+            return Result.fail("秒杀尚未开始!");
+        }
+
+        if (voucher.getEndTime().isBefore(LocalDateTime.now())){
+            return Result.fail("秒杀已经结束!");
+        }
+
+        if (voucher.getStock() < 1) {
+            return Result.fail("库存已无");
+        }
+        Long userId = UserHolder.getUser().getId();
+
+        //创建锁对象
+        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+        RLock lock = redissonClient.getLock("lock:order:" + userId);
+        //获取锁
+        boolean isLock = lock.tryLock();
+
+        if(!isLock){
+            return Result.fail("不允许重复下单");
+        }
+        try {
+            //获取代理对象
+            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
+            return proxy.createVoucherOrder(voucherId);
+        } finally {
+            lock.unlock();
+        }
+    }*/
 
     @Transactional
     public void createVoucherOrder(VoucherOrder voucherOrder) {
