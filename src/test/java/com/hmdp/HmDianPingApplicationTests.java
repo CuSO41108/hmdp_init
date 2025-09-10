@@ -1,8 +1,8 @@
 package com.hmdp;
 
-import cn.hutool.core.lang.UUID;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Shop;
+import com.hmdp.service.IUserService;
 import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.service.impl.ShopServiceImpl;
 import com.hmdp.utils.CacheClient;
@@ -13,13 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import javax.annotation.Resource;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,6 +38,9 @@ public class HmDianPingApplicationTests {
 
     @Resource
     private IVoucherOrderService voucherOrderService;
+
+    @Resource
+    private IUserService userService;
 
     private ExecutorService es = Executors.newFixedThreadPool(500);
     @Test
@@ -74,40 +70,8 @@ public class HmDianPingApplicationTests {
         cacheClient.setWithLogicalExpire(CACHE_SHOP_KEY + 9L, shop, 10L, TimeUnit.SECONDS);
     }
 
-    @Test
-    public void generateTokens() throws IOException {
-        // 文件输出路径（改成你自己的绝对路径，方便 JMeter 读取）
-        File file = new File("D:\\lst\\heima\\hmdp-init\\tokens.csv");
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-
-
-            for (int i = 0; i < 1000; i++) {
-                long userId = 2000L + i;
-                Map<String, String> userMap = new HashMap<>();
-                userMap.put("id", String.valueOf(userId));
-                userMap.put("nickName", "压测用户" + i);
-
-                String token = UUID.randomUUID().toString();
-                String userJson = "{\"id\":" + userId + ",\"nickName\":\"压测用户" + i + "\"}";
-
-                // 1. 存入 Redis（有效期30分钟，你也可以改成1小时）
-                stringRedisTemplate.opsForHash().putAll(
-                        "login:token:" + token,
-                        userMap
-                );
-                stringRedisTemplate.expire("login:token:" + token, Duration.ofMinutes(30));
-                // 2. 写入 CSV 文件，每行一个 token
-                writer.write(token);
-                writer.newLine();
-            }
-        }
-        System.out.println("✅ Token 生成完成，文件路径：" + file.getAbsolutePath());
-    }
-
-
-
     private static final int THREAD_COUNT = 5000; // 并发请求数
-    private static final Long VOUCHER_ID = 10L;
+    private static final Long VOUCHER_ID = 11L;
 
     @Test
     public void testSeckillConcurrency() throws InterruptedException {

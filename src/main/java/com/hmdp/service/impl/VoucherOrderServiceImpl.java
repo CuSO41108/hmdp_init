@@ -167,7 +167,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         if(!isLock){
             log.error("不允许重复下单");
-            return;//有问题
+            //return;//有问题
+            throw new RuntimeException("获取锁失败，不允许重复下单");
         }
         try {
             //获取代理对象
@@ -289,7 +290,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
         if (count > 0) {
             log.error("用户已经下过单了");
-            return;//有问题
+            //return;
+            throw new RuntimeException("用户已经下过单了");
         }
         //扣减库存
         boolean success = seckillVoucherService.update()
@@ -298,7 +300,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                 .update();
         if (!success) {
             log.error("库存不足!");
-            return;//有问题
+            //return;
+            throw new RuntimeException("数据库库存不足");
         }
         //创建订单
         save(voucherOrder);
