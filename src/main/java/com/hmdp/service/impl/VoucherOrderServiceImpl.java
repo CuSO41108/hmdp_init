@@ -15,6 +15,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -157,25 +158,27 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 //        }
 //    }
     public void handleVoucherOrder(VoucherOrder voucherOrder) {
+        //与lua重复了，故先注释掉
         //1.获取用户
-        Long userId = voucherOrder.getUserId();
+        //Long userId = voucherOrder.getUserId();
         //创建锁对象
-        RLock lock = redissonClient.getLock("lock:order:" + userId);
+        //RLock lock = redissonClient.getLock("lock:order:" + userId);
         //获取锁
-        boolean isLock = lock.tryLock();
+        //boolean isLock = lock.tryLock();
 
-        if(!isLock){
-            log.error("不允许重复下单");
-            //return;
-            throw new RuntimeException("获取锁失败，不允许重复下单");
-        }
-        try {
-            //获取代理对象
-            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
-            proxy.createVoucherOrder(voucherOrder);
-        } finally {
-            lock.unlock();
-        }
+//        if(!isLock){
+//            log.error("不允许重复下单");
+//            //return;
+//            throw new RuntimeException("获取锁失败，不允许重复下单");
+//        }
+//        try {
+//            //获取代理对象
+        IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
+        proxy.createVoucherOrder(voucherOrder);
+
+//        } finally {
+//            lock.unlock();
+//        }
     }
 
     private IVoucherOrderService proxy;
@@ -303,7 +306,14 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             throw new RuntimeException("数据库库存不足");
         }
         //创建订单
-        save(voucherOrder);
+        try{
+            save(voucherOrder);
+        }catch (DuplicateKeyException e){
+            log.warn("用户重复下单: userId = {}, voucherId = {}, ",voucherOrder.getUserId(), voucherOrder.getVoucherId());
+        }catch (Exception e){
+            log.error("系统异常,创建订单失败",e);
+            throw e;
+        }
 
     }
 }
