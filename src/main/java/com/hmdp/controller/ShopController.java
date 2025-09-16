@@ -109,4 +109,11 @@ public class ShopController {
     ) {
         return shopService.queryShopByType(typeId, current, x, y);
     }
+
+    @GetMapping("/search")
+    public Result searchShop(
+            @RequestParam(value = "keyword")String keyword,
+            @RequestParam(value = "current", defaultValue = "1")Integer current) {
+        return shopService.searchShop(keyword, current);
+    }
 }

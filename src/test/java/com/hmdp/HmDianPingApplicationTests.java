@@ -6,8 +6,11 @@ import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Shop;
+import com.hmdp.entity.ShopDoc;
 import com.hmdp.entity.User;
 import com.hmdp.mapper.UserMapper;
+import com.hmdp.repository.ShopRepository;
+import com.hmdp.service.IShopService;
 import com.hmdp.service.IUserService;
 import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.service.impl.ShopServiceImpl;
@@ -61,6 +64,12 @@ public class HmDianPingApplicationTests {
 
     @Resource
     private UserMapper userMapper;
+
+    @Resource
+    private IShopService iShopService;
+
+    @Resource
+    private ShopRepository shopRepository;
 
     private ExecutorService es = Executors.newFixedThreadPool(500);
     @Test
@@ -173,5 +182,24 @@ public class HmDianPingApplicationTests {
             br.flush();
         }
 
+    }
+    @Test
+    public void loadShopDocData(){
+        List<Shop> list = shopService.list();
+        if (list == null && list.size() == 0) {
+            log.error("MySQL中没有商铺信息");
+            return;
+        }
+        List<ShopDoc> shopDocList = new ArrayList<>();
+
+        for (Shop shop : list) {
+            ShopDoc shopDoc = new ShopDoc();
+
+            BeanUtil.copyProperties(shop, shopDoc);
+
+            shopDocList.add(shopDoc);
+        }
+        shopRepository.saveAll(shopDocList);
+        log.info("全量数据导入 ES 成功，共 {} 条", shopDocList.size());
     }
 }
