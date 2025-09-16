@@ -29,7 +29,7 @@ public class SeckillOrderConsumerService implements RocketMQListener<VoucherOrde
         }catch (Exception e){
             log.error("处理秒杀订单失败！订单详情: {}", voucherOrder, e);
             // 抛出异常，触发 RocketMQ 的自动重试机制
-            throw new RuntimeException("消费失败，触发重试", e);
+//            throw new RuntimeException("消费失败，触发重试", e);
         }
     }
 }
