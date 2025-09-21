@@ -6,6 +6,7 @@ import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Blog;
 import com.hmdp.entity.User;
+import com.hmdp.limiter.annotation.RateLimiter;
 import com.hmdp.service.IBlogService;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.SystemConstants;
@@ -30,13 +31,14 @@ public class BlogController {
     @Resource
     private IBlogService blogService;
 
-
+    @RateLimiter(window = 600, limit = 5, type = RateLimiter.LimitType.USER)
     @PostMapping
     public Result saveBlog(@RequestBody Blog blog) {
 
         return blogService.saveBlog(blog);
     }
 
+    @RateLimiter(window = 60, limit = 20, type = RateLimiter.LimitType.USER)
     @PutMapping("/like/{id}")
     public Result likeBlog(@PathVariable("id") Long id) {
         // 修改点赞数量

@@ -101,6 +101,7 @@ public class ShopController {
         // 返回数据
         return Result.ok(page.getRecords());
     }
+    @RateLimiter(window = 1, limit = 100)
     @GetMapping("/of/type")
     public Result queryShopByType(
             @RequestParam("typeId") Integer typeId,

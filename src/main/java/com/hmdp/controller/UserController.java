@@ -7,6 +7,7 @@ import com.hmdp.dto.Result;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.User;
 import com.hmdp.entity.UserInfo;
+import com.hmdp.limiter.annotation.RateLimiter;
 import com.hmdp.service.IUserInfoService;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.UserHolder;
@@ -39,6 +40,7 @@ public class UserController {
     /**
      * 发送手机验证码
      */
+    @RateLimiter(window = 60, limit = 1, type = RateLimiter.LimitType.IP)
     @PostMapping("code")
     public Result sendCode(@RequestParam("phone") String phone, HttpSession session) {
         // 发送短信验证码并保存验证码

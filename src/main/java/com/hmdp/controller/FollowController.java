@@ -2,6 +2,7 @@ package com.hmdp.controller;
 
 
 import com.hmdp.dto.Result;
+import com.hmdp.limiter.annotation.RateLimiter;
 import com.hmdp.service.IFollowService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -25,6 +26,7 @@ public class FollowController {
     @Resource
     private IFollowService followService;
 
+    @RateLimiter(window = 60, limit = 20, type = RateLimiter.LimitType.USER)
     @PutMapping("/{id}/{isFollow}")
     public Result follow(@PathVariable("id") Long followUserId, @PathVariable("isFollow") Boolean isFollow) {
         return followService.follow(followUserId, isFollow);
