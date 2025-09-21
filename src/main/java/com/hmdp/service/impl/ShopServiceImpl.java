@@ -296,8 +296,6 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         // 1. 调用 ES Repository 进行搜索
         List<ShopDoc> shopDocs = shopRepository.findByNameOrAddress(keyword, keyword);
 
-        // 2. (可选) 你可以根据需要将 ShopDoc 转回 ShopDTO 再返回给前端
-
         return Result.ok(shopDocs);
     }
 }

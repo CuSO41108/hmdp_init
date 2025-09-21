@@ -21,6 +21,7 @@ spring:
         max-idle: 10
         min-idle: 1
         time-between-eviction-runs: 10s
+      read-from: master
   jackson:
     default-property-inclusion: non_null # JSON处理时忽略非空字段
   elasticsearch:

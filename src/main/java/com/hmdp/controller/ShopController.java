@@ -8,6 +8,7 @@ import com.hmdp.entity.Shop;
 import com.hmdp.service.IShopService;
 import com.hmdp.utils.SystemConstants;
 import org.springframework.web.bind.annotation.*;
+import com.hmdp.limiter.annotation.RateLimiter;
 
 import javax.annotation.Resource;
 
@@ -110,10 +111,13 @@ public class ShopController {
         return shopService.queryShopByType(typeId, current, x, y);
     }
 
+    @RateLimiter(window = 1, limit = 10, message = "搜索过于频繁，请稍后再试")
     @GetMapping("/search")
     public Result searchShop(
             @RequestParam(value = "keyword")String keyword,
             @RequestParam(value = "current", defaultValue = "1")Integer current) {
         return shopService.searchShop(keyword, current);
     }
+
+
 }

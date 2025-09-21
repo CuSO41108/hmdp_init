@@ -35,5 +35,4 @@ public class ShopDoc {
     @Field(type = FieldType.Integer)
     private Integer comments;
 
-
 }
