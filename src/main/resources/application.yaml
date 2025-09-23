@@ -36,3 +36,8 @@ rocketmq:
   producer:
     group: hmdp_producer_group
     transaction-group: TX_HMDP_SECKILL_GROUP
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health
