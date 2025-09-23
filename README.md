@@ -26,6 +26,6 @@
 * 全局异常处理：`WebExceptionAdvice`（单独捕获限流异常返回自定义 message）
 
 ### 验证
-快速向 `/shop/search?keyword=火锅` 连续发 12 次请求（<1s），后两次会返回限流错误。
+快速向 `/shop/search?keyword=火锅` 连续发100次请求（<1s）
 
 
